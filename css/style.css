@@ -1,0 +1,79 @@
+body {
+	font-family: 'Hind', sans-serif;
+	font-size: 14px;
+	color: #333;
+}
+
+table {
+	border-collapse: collapse;
+	width: 500px;
+}
+
+th {
+	font-weight: bold;
+	text-align: left;
+	background: linear-gradient(to top, #d5d5d5, #f0f0f0);
+} 
+
+td, th {
+	border: 1px solid #aaa;
+	padding: 0px 5px;
+}
+
+tbody tr:nth-of-type(even) {
+	background-color: #f0f0f0;
+}
+
+td input {
+	padding:0;
+	margin:0;
+}
+
+.input-name {
+	width: 100px;
+}
+
+.input-age {
+	width: 40px;
+}
+
+.input-country {
+	width: 100px;
+}
+
+.table-options {
+	padding: 3px 0px;
+	/*border: 1px solid #aaa;*/
+	display: inline-block;
+	width: 500px;
+	box-sizing: border-box;
+	text-align: right;
+}
+
+.settings-button {
+	display: inline-block;
+	width: 27px;
+	height: 27px;
+	padding: 2px;
+	font-size: 20px;
+	color:#555;
+	line-height: 20px;
+}
+
+.settings-button:hover .settings-icon{
+	transform: rotate(45deg);	
+}
+
+.settings-button:active{
+	background-color: #e0e0e0;
+}
+
+.settings-icon {
+	transition: 0.3s ease;
+}
+
+.settings-button::-moz-focus-inner {
+   margin: -3px; 
+   padding: 0; 
+   border-width: 1px;
+}

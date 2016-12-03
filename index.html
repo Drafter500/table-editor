@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>TableView</title>
+	<link rel="stylesheet" href="css/style.css">
+	<link href="https://fonts.googleapis.com/css?family=Hind:400,700" rel="stylesheet">
+	<link rel="stylesheet" href="font_awesome/css/font-awesome.min.css">
+	<script src="js/jquery-3.1.1.min.js"></script>
+</head>
+<body>
+	<div>
+		<div class="table-options">
+		<label><input type="checkbox" id="edit-table-check"/>Edit</label>
+	    <button class="settings-button"><i class="fa fa-cog settings-icon"></i></button>
+	    </div>
+		<table>
+			<thead>
+				<tr>
+					<th>Name <i class="fa fa-sort-asc" aria-hidden="true"></i></th>
+					<th>Age <i class="fa fa-sort-desc"></i></th>
+					<th>Country</th>
+					<th>Action</th>	
+				</tr>
+			</thead>
+			<tbody>				
+			</tbody>
+		</table>
+		<button id="loader">Load</button>
+		<div id="content"></div>
+		<button id="loader2">Load in dialog</button>
+	</div>
+</body>
+<script src="js/table.js"></script>
+</html>
