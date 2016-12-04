@@ -154,6 +154,7 @@ $(document).ready(function() {
 	});	
 	
 
+
 	// Test stuff, remove later
 	$("#loader").on('click', function(event) {
 		event.preventDefault();
