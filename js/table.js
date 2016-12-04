@@ -121,20 +121,24 @@ $(document).ready(function() {
 		updateLocalStorage();
 	}
 
+	function retriveData() {
+		if (localStorage["tableData"]) {
+			tableData = JSON.parse(localStorage["tableData"]);
+		} 
+		else {
+			tableData = 
+			[{name : "John", age: 29, country : 'USA'},
+			{name : "Paul", age: 27, country : 'Germany'},
+			{name : "Vladimir", age: 26, country : 'Russia'}]
+		}	
+	}
+
 	const table = $('table tbody');
 	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
 	var columnNames = ['name', 'age', 'country'];
 	var tableData = [];
-	if (localStorage["tableData"]) {
-		tableData = JSON.parse(localStorage["tableData"]);
-	} 
-	else {
-		tableData = 
-		[{name : "John", age: 29, country : 'USA'},
-	 	 {name : "Paul", age: 27, country : 'Germany'},
-	 	 {name : "Vladimir", age: 26, country : 'Russia'}]
-	}	
 
+	retrieveData();
 	populateTable(tableData);
 	connectDeleteButtons();
 
@@ -148,7 +152,9 @@ $(document).ready(function() {
 			deactivateEditingMode();
 		}
 	});	
+	
 
+	// Test stuff, remove later
 	$("#loader").on('click', function(event) {
 		event.preventDefault();
 		$.ajax('/content.html', {
