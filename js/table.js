@@ -159,7 +159,7 @@ $(document).ready(function() {
 		})
 	});
 
-	$("#loader2").on('click', function(event) {
+	$("#loader-in-dialog").on('click', function(event) {
 		event.preventDefault();
 		window.open('/content.html', "popup", 'height=300,width=300');
 	});
