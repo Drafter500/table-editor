@@ -77,3 +77,16 @@ td input {
    padding: 0; 
    border-width: 1px;
 }
+
+.cell {
+	position: relative;
+	height: auto;
+}
+
+.left-resizer {
+	border: 2px solid rgba(255,127,127, 0.5);
+	height: 100%;
+	position: absolute;
+	right: -7px;
+	top: 0px;
+}

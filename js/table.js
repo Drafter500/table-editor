@@ -121,8 +121,41 @@ $(document).ready(function() {
 		updateLocalStorage();
 	}
 
+	function makeTableResizable() {
+		table.children('tr').each(function() {
+			$(this).children('td').each(function() {
+				var currentText = $(this).text();
+				$(this).html("<div class=\"cell\">" + currentText + resizeDiv + "</div>");				
+			});
+		});
+
+		$('.left-resizer').on('mouseover', function(){
+			$(this).css('cursor', 'ew-resize');
+		});
+
+		var xBeforeMove;
+		var xAfterMove;
+		var borderCaptured = false;
+		$('.left-resizer')
+		.on('mousedown', function(e) {			
+			xBeforeMove = e.clientX;
+			borderCaptured = true;		
+		})		
+
+		$(window).on('mousemove', function(e) {		
+			xAfterMove = e.clientX;
+			if (borderCaptured && (xAfterMove != xBeforeMove)) {
+				console.log(xAfterMove - xBeforeMove);
+			}
+		})
+		.on('mouseup', function() {
+			borderCaptured = false;
+		});
+	}
+
 	const table = $('table tbody');
 	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
+	const resizeDiv = "<div class=\"left-resizer\"></div>"
 	var columnNames = ['name', 'age', 'country'];
 	var tableData = [];
 	if (localStorage["tableData"]) {
@@ -137,6 +170,7 @@ $(document).ready(function() {
 
 	populateTable(tableData);
 	connectDeleteButtons();
+	makeTableResizable();
 
 	// Firefox remembers form state after page refresh
 	$('#edit-table-check').prop('checked', false);
