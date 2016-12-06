@@ -136,16 +136,21 @@ $(document).ready(function() {
 		var xBeforeMove;
 		var xAfterMove;
 		var borderCaptured = false;
+		var capturedCell;
+		var cellWidthBeforeMove;
 		$('.left-resizer')
 		.on('mousedown', function(e) {			
 			xBeforeMove = e.clientX;
-			borderCaptured = true;		
+			borderCaptured = true;	
+			capturedCell = $(this).closest("td");
+			cellWidthBeforeMove = parseInt($(capturedCell).css('width'),10);		
 		})		
 
 		$(window).on('mousemove', function(e) {		
 			xAfterMove = e.clientX;
-			if (borderCaptured && (xAfterMove != xBeforeMove)) {
-				console.log(xAfterMove - xBeforeMove);
+			if (borderCaptured && (xAfterMove != xBeforeMove)) {				
+				var diff = xAfterMove - xBeforeMove;
+				$(capturedCell).css('width', cellWidthBeforeMove + diff);
 			}
 		})
 		.on('mouseup', function() {
