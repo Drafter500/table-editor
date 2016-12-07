@@ -121,6 +121,14 @@ $(document).ready(function() {
 		updateLocalStorage();
 	}
 
+	function cleanNeighbourCellsWidth(cell) {
+		var col = cellIndex(cell).col;
+		var row = cellIndex(cell).row;
+		table.children('tr:not(:nth-child(' + (row + 1) + '))').each(function(){
+			$(this).find('td:nth-child(' + (col + 1) + ')').css('width', 'auto');			
+		});
+	}
+
 	function makeTableResizable() {
 		table.children('tr').each(function() {
 			$(this).children('td').each(function() {
@@ -143,7 +151,9 @@ $(document).ready(function() {
 			xBeforeMove = e.clientX;
 			borderCaptured = true;	
 			capturedCell = $(this).closest("td");
-			cellWidthBeforeMove = parseInt($(capturedCell).css('width'),10);		
+			cellWidthBeforeMove = parseInt($(capturedCell).css('width'),10);
+			$(capturedCell).css('width', cellWidthBeforeMove);
+			cleanNeighbourCellsWidth(capturedCell);
 		})		
 
 		$(window).on('mousemove', function(e) {		
