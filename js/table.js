@@ -12,7 +12,7 @@ $(document).ready(function() {
 
 	function activateEditingMode()
 	{
-		table.children('tr').each(function() {
+		tableBody.children('tr').each(function() {
 			var i = 0;
 			for(var i = 0; i < columnNames.length; i++) {
 				var td = $(this).children('td')[i];
@@ -53,7 +53,7 @@ $(document).ready(function() {
 		}
 		newRawText += "<td></td>"
 		newRawText += '</tr>'
-		table.append(newRawText);
+		tableBody.append(newRawText);
 		$('.new-item').on('change', newItemChanged);
 		$('.new-item').on('change', connectInputEvent);		
 	}
@@ -61,18 +61,18 @@ $(document).ready(function() {
 	function deactivateEditingMode()
 	{
 		disconnectEvents();	
-		table.children('tr').each(function() {
+		tableBody.children('tr').each(function() {
 			$(this).children('td').each(function() {
 				var currentText = $(this).find('input').val();
 				$(this).html(currentText);				
 			});
 		});
-		table.children('tr').last().remove();
+		tableBody.children('tr').last().remove();
 	}
 
 	function newItemChanged() {
 		var newItemDirty = false;
-		table.find('.new-item').each(function(){
+		tableBody.find('.new-item').each(function(){
 			if ($(this).val != '') {
 				newItemDirty = true;
 				return false;				
@@ -80,11 +80,11 @@ $(document).ready(function() {
 		});
 
 		if (newItemDirty) {
-			table.find('.new-item').each(function() {
+			tableBody.find('.new-item').each(function() {
 				$(this).removeClass('new-item');
 				$(this).off('change', newItemChanged);			
 			});
-			table.children('tr').last().children("td").last()
+			tableBody.children('tr').last().children("td").last()
 			.html(deleteButton);				
 			
 			tableData.push({});
@@ -106,7 +106,7 @@ $(document).ready(function() {
 			tableText += "<td>" + deleteButton + "</td>";
 			tableText += "</tr>";
 		}		
-		table.append(tableText);
+		tableBody.append(tableText);
 	}
 
 	function connectDeleteButtons() {
@@ -116,7 +116,7 @@ $(document).ready(function() {
 	}
 
 	function deleteRow(row) {
-		table.children('tr')[row].remove();
+		tableBody.children('tr')[row].remove();
 		tableData.splice(row, 1);
 		updateLocalStorage();
 	}
@@ -124,13 +124,25 @@ $(document).ready(function() {
 	function cleanNeighbourCellsWidth(cell) {
 		var col = cellIndex(cell).col;
 		var row = cellIndex(cell).row;
-		table.children('tr:not(:nth-child(' + (row + 1) + '))').each(function(){
+		tableBody.children('tr:not(:nth-child(' + (row + 1) + '))').each(function(){
 			$(this).find('td:nth-child(' + (col + 1) + ')').css('width', 'auto');			
 		});
 	}
 
+	function columnCount() {
+		return tableBody.children("tr:first-child").children('td').length;
+	}
+
+	function resizeCell(cell, cellWidth, tableWidth, difference) {
+		var col = cellIndex(cell).col;
+		$(cell).css('width', cellWidth + difference);
+		if (col == columnCount() - 1) {			
+			table.css('width', tableWidth + difference);
+		}		
+	}
+
 	function makeTableResizable() {
-		table.children('tr').each(function() {
+		tableBody.children('tr').each(function() {
 			$(this).children('td').each(function() {
 				var currentText = $(this).text();
 				$(this).html("<div class=\"cell\">" + currentText + resizeDiv + "</div>");				
@@ -146,12 +158,14 @@ $(document).ready(function() {
 		var borderCaptured = false;
 		var capturedCell;
 		var cellWidthBeforeMove;
+		var tableWidthBeforeMove;
 		$('.left-resizer')
 		.on('mousedown', function(e) {			
 			xBeforeMove = e.clientX;
 			borderCaptured = true;	
 			capturedCell = $(this).closest("td");
-			cellWidthBeforeMove = parseInt($(capturedCell).css('width'),10);
+			cellWidthBeforeMove = parseInt($(capturedCell).css('width'), 10);
+			tableWidthBeforeMove = parseInt(table.css('width'), 10);
 			$(capturedCell).css('width', cellWidthBeforeMove);
 			cleanNeighbourCellsWidth(capturedCell);
 		})		
@@ -160,7 +174,7 @@ $(document).ready(function() {
 			xAfterMove = e.clientX;
 			if (borderCaptured && (xAfterMove != xBeforeMove)) {				
 				var diff = xAfterMove - xBeforeMove;
-				$(capturedCell).css('width', cellWidthBeforeMove + diff);
+				resizeCell(capturedCell, cellWidthBeforeMove, tableWidthBeforeMove, diff);
 			}
 		})
 		.on('mouseup', function() {
@@ -168,7 +182,8 @@ $(document).ready(function() {
 		});
 	}
 
-	const table = $('table tbody');
+	const table = $('table');
+	const tableBody = table.find('tbody');
 	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
 	const resizeDiv = "<div class=\"left-resizer\"></div>"
 	var columnNames = ['name', 'age', 'country'];
