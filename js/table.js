@@ -16,13 +16,15 @@ $(document).ready(function() {
 			var i = 0;
 			for(var i = 0; i < columnNames.length; i++) {
 				var td = $(this).children('td')[i];
-				var currentText = $(td).text();
-				$(td).html(makeCellEditable(
+				var cellDiv = $(td).find('.cell');
+				var currentText = $(cellDiv).text();
+				$(cellDiv).html(makeCellEditable(
 					columnNames[i], currentText));				
 			}
 		});
 		addEmptyRow();
 		$('td input[type=text]').on('change', connectInputEvent);
+		activateResizeMode();
 	}
 
 	function connectInputEvent(event) {
@@ -64,10 +66,12 @@ $(document).ready(function() {
 		tableBody.children('tr').each(function() {
 			$(this).children('td').each(function() {
 				var currentText = $(this).find('input').val();
-				$(this).html(currentText);				
+				var cellDiv = $(this).find('.cell');
+				$(cellDiv).html(currentText);
 			});
 		});
 		tableBody.children('tr').last().remove();
+		deactivateResizeMode();
 	}
 
 	function newItemChanged() {
@@ -101,9 +105,9 @@ $(document).ready(function() {
 				var cellValue = 
 					(data[i][columnNames[j]] !== undefined) ?
 					data[i][columnNames[j]] : "";
-				tableText += ("<td>" + cellValue + '</td>');				
+				tableText += ("<td><div class=\"cell\">" + cellValue + "</div></td>");				
 			}
-			tableText += "<td>" + deleteButton + "</td>";
+			tableText += "<td><div class=\"cell\">" + deleteButton + "</div></td>";
 			tableText += "</tr>";
 		}		
 		tableBody.append(tableText);
@@ -137,18 +141,18 @@ $(document).ready(function() {
 
 		if (col == columnCount() - 1) {			
 			table.css('width', tableWidth + difference);
-		}		
+		}	
 
 		if (columnCount() > 1 && (col < columnCount() - 1)) {	
 			$(headerCell).next('th').css('width', nextCellWidth - difference);
 		}
 	}
 
-	function makeTableResizable() {
+	function activateResizeMode() {
 		tableBody.children('tr').each(function() {
 			$(this).children('td').each(function() {
-				var currentText = $(this).text();
-				$(this).html("<div class=\"cell\">" + currentText + resizeDiv + "</div>");				
+				var cellDiv = $(this).find('.cell');
+				$(cellDiv).append(resizerLine);				
 			});
 		});
 
@@ -186,10 +190,18 @@ $(document).ready(function() {
 		});
 	}
 
+	function deactivateResizeMode() {
+		tableBody.children('tr').each(function() {
+			$(this).children('td').each(function() {
+				$(this).find('.left-resizer').remove();							
+			});
+		});
+	}
+
 	const table = $('table');
 	const tableBody = table.find('tbody');
 	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
-	const resizeDiv = "<div class=\"left-resizer\"></div>"
+	const resizerLine = "<div class=\"left-resizer\"></div>"
 	var columnNames = ['name', 'age', 'country'];
 	var tableData = [];
 	if (localStorage["tableData"]) {
@@ -203,8 +215,7 @@ $(document).ready(function() {
 	}	
 
 	populateTable(tableData);
-	connectDeleteButtons();
-	makeTableResizable();
+	connectDeleteButtons();	
 
 	// Firefox remembers form state after page refresh
 	$('#edit-table-check').prop('checked', false);
