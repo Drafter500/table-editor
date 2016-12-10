@@ -127,18 +127,28 @@ $(document).ready(function() {
 		tableBody.children('tr:not(:nth-child(' + (row + 1) + '))').each(function(){
 			$(this).find('td:nth-child(' + (col + 1) + ')').css('width', 'auto');			
 		});
+
+		if (columnCount() > 1 && (col < columnCount() - 1))
+			tableBody.children('tr:not(:nth-child('+ (row + 1) + '))').each(function(){
+				$(this).find('td:nth-child(' + (col + 2) + ')').css('width', 'auto');		
+			});
 	}
 
 	function columnCount() {
 		return tableBody.children("tr:first-child").children('td').length;
-	}
+	}	
 
-	function resizeCell(cell, cellWidth, tableWidth, difference) {
+	function resizeCell(cell, cellWidth, nextCellWidth, tableWidth, difference) {
 		var col = cellIndex(cell).col;
 		$(cell).css('width', cellWidth + difference);
+
 		if (col == columnCount() - 1) {			
 			table.css('width', tableWidth + difference);
 		}		
+
+		if (columnCount() > 1 && (col < columnCount() - 1)) {			
+			$(cell).next('td').css('width', nextCellWidth - difference);
+		}	
 	}
 
 	function makeTableResizable() {
@@ -158,6 +168,7 @@ $(document).ready(function() {
 		var borderCaptured = false;
 		var capturedCell;
 		var cellWidthBeforeMove;
+		var nextCellWidthBeforeMove;
 		var tableWidthBeforeMove;
 		$('.left-resizer')
 		.on('mousedown', function(e) {			
@@ -165,8 +176,9 @@ $(document).ready(function() {
 			borderCaptured = true;	
 			capturedCell = $(this).closest("td");
 			cellWidthBeforeMove = parseInt($(capturedCell).css('width'), 10);
-			tableWidthBeforeMove = parseInt(table.css('width'), 10);
-			$(capturedCell).css('width', cellWidthBeforeMove);
+			nextCellWidthBeforeMove = parseInt($(capturedCell).next('td').css('width'), 10);
+			tableWidthBeforeMove = parseInt(table.css('width'), 10);		
+			$(capturedCell).css('width', cellWidthBeforeMove);	
 			cleanNeighbourCellsWidth(capturedCell);
 		})		
 
@@ -174,7 +186,7 @@ $(document).ready(function() {
 			xAfterMove = e.clientX;
 			if (borderCaptured && (xAfterMove != xBeforeMove)) {				
 				var diff = xAfterMove - xBeforeMove;
-				resizeCell(capturedCell, cellWidthBeforeMove, tableWidthBeforeMove, diff);
+				resizeCell(capturedCell, cellWidthBeforeMove, nextCellWidthBeforeMove, tableWidthBeforeMove, diff);
 			}
 		})
 		.on('mouseup', function() {
