@@ -119,36 +119,29 @@ $(document).ready(function() {
 		tableBody.children('tr')[row].remove();
 		tableData.splice(row, 1);
 		updateLocalStorage();
-	}
+	}	
 
-	function cleanNeighbourCellsWidth(cell) {
-		var col = cellIndex(cell).col;
-		var row = cellIndex(cell).row;
-		tableBody.children('tr:not(:nth-child(' + (row + 1) + '))').each(function(){
-			$(this).find('td:nth-child(' + (col + 1) + ')').css('width', 'auto');			
-		});
-
-		if (columnCount() > 1 && (col < columnCount() - 1))
-			tableBody.children('tr:not(:nth-child('+ (row + 1) + '))').each(function(){
-				$(this).find('td:nth-child(' + (col + 2) + ')').css('width', 'auto');		
-			});
+	function getHeaderCell(resizer) {
+		var cell = $(resizer).closest('td');
+		var col = $(cell).index();
+		return table.find('th:nth-child(' + (col + 1)+ ')');
 	}
 
 	function columnCount() {
 		return tableBody.children("tr:first-child").children('td').length;
 	}	
 
-	function resizeCell(cell, cellWidth, nextCellWidth, tableWidth, difference) {
-		var col = cellIndex(cell).col;
-		$(cell).css('width', cellWidth + difference);
+	function resizeColumn(headerCell, cellWidth, nextCellWidth, tableWidth, difference) {
+		var col = $(headerCell).index();
+		$(headerCell).css('width', cellWidth + difference);
 
 		if (col == columnCount() - 1) {			
 			table.css('width', tableWidth + difference);
 		}		
 
-		if (columnCount() > 1 && (col < columnCount() - 1)) {			
-			$(cell).next('td').css('width', nextCellWidth - difference);
-		}	
+		if (columnCount() > 1 && (col < columnCount() - 1)) {	
+			$(headerCell).next('th').css('width', nextCellWidth - difference);
+		}
 	}
 
 	function makeTableResizable() {
@@ -166,27 +159,26 @@ $(document).ready(function() {
 		var xBeforeMove;
 		var xAfterMove;
 		var borderCaptured = false;
-		var capturedCell;
-		var cellWidthBeforeMove;
-		var nextCellWidthBeforeMove;
+		var capturedHeaderCell;
+		var widthBeforeMove;
+		var nextWidthBeforeMove;
 		var tableWidthBeforeMove;
 		$('.left-resizer')
 		.on('mousedown', function(e) {			
 			xBeforeMove = e.clientX;
 			borderCaptured = true;	
-			capturedCell = $(this).closest("td");
-			cellWidthBeforeMove = parseInt($(capturedCell).css('width'), 10);
-			nextCellWidthBeforeMove = parseInt($(capturedCell).next('td').css('width'), 10);
+			capturedHeaderCell = getHeaderCell(this);
+			widthBeforeMove = parseInt($(capturedHeaderCell).css('width'), 10);
+			nextWidthBeforeMove = parseInt($(capturedHeaderCell).next('th').css('width'), 10);
 			tableWidthBeforeMove = parseInt(table.css('width'), 10);		
-			$(capturedCell).css('width', cellWidthBeforeMove);	
-			cleanNeighbourCellsWidth(capturedCell);
+			$(capturedHeaderCell).css('width', widthBeforeMove);		
 		})		
 
 		$(window).on('mousemove', function(e) {		
 			xAfterMove = e.clientX;
 			if (borderCaptured && (xAfterMove != xBeforeMove)) {				
 				var diff = xAfterMove - xBeforeMove;
-				resizeCell(capturedCell, cellWidthBeforeMove, nextCellWidthBeforeMove, tableWidthBeforeMove, diff);
+				resizeColumn(capturedHeaderCell, widthBeforeMove, nextWidthBeforeMove, tableWidthBeforeMove, diff);
 			}
 		})
 		.on('mouseup', function() {
