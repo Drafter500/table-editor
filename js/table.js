@@ -84,14 +84,14 @@ function TableEdit() {
 		}
 	}
 
-	function populateTable(data) {
+	function populateTable() {
 		var tableText = "";
-		for(var i = 0; i < data.length; i++) {
+		for(var i = 0; i < tableData.length; i++) {
 			tableText += "<tr>";
 			for (var j = 0; j < columnNames.length; j++) {
 				var cellValue = 
-					(data[i][columnNames[j]] !== undefined) ?
-					data[i][columnNames[j]] : "";
+					(tableData[i][columnNames[j]] !== undefined) ?
+					tableData[i][columnNames[j]] : "";
 				tableText += ("<td><div class=\"cell\">" + cellValue + "</div></td>");				
 			}
 			tableText += "<td><div class=\"cell\">" + deleteButton + "</div></td>";
@@ -189,6 +189,18 @@ function TableEdit() {
 		});
 	}
 
+	function fetchTableData() {
+		if (localStorage["tableData"]) {
+			tableData = JSON.parse(localStorage["tableData"]);
+		}
+		else {
+			tableData =
+				[{ name: "John", age: 29, country: 'USA' },
+				{ name: "Paul", age: 27, country: 'Germany' },
+				{ name: "Vladimir", age: 26, country: 'Russia' }]
+		}	
+	}
+
 	var self = this;
 	this.table = $('table');
 	const tableBody = this.table.find('tbody');
@@ -196,16 +208,8 @@ function TableEdit() {
 	const resizerLine = "<div class=\"left-resizer\"></div>";
 	var columnNames = ['name', 'age', 'country'];
 	var tableData = [];
-	if (localStorage["tableData"]) {
-		tableData = JSON.parse(localStorage["tableData"]);
-	} 
-	else {
-		tableData = 
-		[{name : "John", age: 29, country : 'USA'},
-	 	 {name : "Paul", age: 27, country : 'Germany'},
-	 	 {name : "Vladimir", age: 26, country : 'Russia'}]
-	}	
 
+	fetchTableData();
 	populateTable(tableData);
 	connectDeleteButtons();	
 
