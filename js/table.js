@@ -1,203 +1,199 @@
-$(document).ready(function() {
-	function cellIndex(cell) {
-		return {row : $(cell).closest('tr').index(),
-				col : $(cell).closest('td').index()}
-	};
+function cellIndexForElement(el) {
+	return { row : $(el).closest('tr').index(),
+			 col : $(el).closest('td').index() }
+};
 
-	function makeCellEditable(classSuffix, value, isNewItem = false){
-		return '<input type="text" class="input-' + 
-		classSuffix + (isNewItem ? " new-item" : "") +
-		 '" value="' + value + '">';
+function makeCellEditable(classSuffix, value, isNewItem = false) {
+	return '<input type="text" class="input-' + 
+	classSuffix + (isNewItem ? " new-item" : "") +
+		'" value="' + value + '">';
+}
+
+function activateEditingMode() {
+	tableBody.children('tr').each(function() {
+		var i = 0;
+		for(var i = 0; i < columnNames.length; i++) {
+			var td = $(this).children('td')[i];
+			var cellDiv = $(td).find('.cell');
+			var currentText = $(cellDiv).text();
+			$(cellDiv).html(makeCellEditable(
+				columnNames[i], currentText));				
+		}
+	});
+	addEmptyRow();
+	$('td input[type=text]').on('change', onInputChanged);
+	activateResizeMode();
+}
+
+function onInputChanged() {
+	var index = cellIndexForElement(this);
+	updateData(index.row, index.col, $(this).val());
+}
+
+function updateLocalStorage() {
+	localStorage['tableData'] = JSON.stringify(tableData);
+}
+
+function updateData(row, col, value) {
+	tableData[row][columnNames[col]] = value;
+	updateLocalStorage();
+}
+
+function addEmptyRow() {
+	var newRowText = '<tr>';
+	for (var i = 0; i < columnNames.length; i++) {
+		newRowText += "<td><div class=\"cell\">" + 
+		makeCellEditable(columnNames[i], '', true) +
+		"</div></td>";
 	}
+	newRowText += "<td></td>"
+	newRowText += '</tr>'
+	tableBody.append(newRowText);
+	$('.new-item').on('change', newItemChanged);
+	$('.new-item').on('change', onInputChanged);		
+}
 
-	function activateEditingMode()
-	{
-		tableBody.children('tr').each(function() {
-			var i = 0;
-			for(var i = 0; i < columnNames.length; i++) {
-				var td = $(this).children('td')[i];
-				var cellDiv = $(td).find('.cell');
-				var currentText = $(cellDiv).text();
-				$(cellDiv).html(makeCellEditable(
-					columnNames[i], currentText));				
-			}
+function deactivateEditingMode() {
+	$('input[type=text]').off();
+	tableBody.children('tr').each(function() {
+		$(this).children('td').each(function() {
+			var currentText = $(this).find('input').val();
+			var cellDiv = $(this).find('.cell');
+			$(cellDiv).html(currentText);
 		});
+	});
+	tableBody.children('tr').last().remove();
+	deactivateResizeMode();
+}
+
+function newItemChanged() {
+	var newItemDirty = false;
+	tableBody.find('.new-item').each(function(){
+		if ($(this).val != '') {
+			newItemDirty = true;
+			return false;				
+		}
+	});
+
+	if (newItemDirty) {
+		tableBody.find('.new-item').each(function() {
+			$(this).removeClass('new-item');
+			$(this).off('change', newItemChanged);			
+		});
+		tableBody.children('tr').last().children("td").last()
+		.html(deleteButton);				
+		
+		tableData.push({});
 		addEmptyRow();
-		$('td input[type=text]').on('change', connectInputEvent);
-		activateResizeMode();
 	}
+}
 
-	function connectInputEvent(event) {
-		var index = cellIndex(this);
-		updateData(index.row, index.col, $(this).val());
-	}
-
-	function disconnectEvents() {
-		$('input[type=text]').off();
-	}
-
-	function updateLocalStorage() {
-		localStorage['tableData'] = JSON.stringify(tableData);
-	}
-
-	function updateData(row, col, value) {
-		tableData[row][columnNames[col]] = value;
-		updateLocalStorage();
-	}
-
-	function addEmptyRow()
-	{
-		var newRawText = '<tr>';
-		for (var i = 0; i < columnNames.length; i++) {
-			newRawText += "<td>" + 
-			makeCellEditable(columnNames[i], '', true) +
-			"</td>";
+function populateTable(data) {
+	var tableText = "";
+	for(var i = 0; i < data.length; i++) {
+		tableText += "<tr>";
+		for (var j = 0; j < columnNames.length; j++) {
+			var cellValue = 
+				(data[i][columnNames[j]] !== undefined) ?
+				data[i][columnNames[j]] : "";
+			tableText += ("<td><div class=\"cell\">" + cellValue + "</div></td>");				
 		}
-		newRawText += "<td></td>"
-		newRawText += '</tr>'
-		tableBody.append(newRawText);
-		$('.new-item').on('change', newItemChanged);
-		$('.new-item').on('change', connectInputEvent);		
-	}
+		tableText += "<td><div class=\"cell\">" + deleteButton + "</div></td>";
+		tableText += "</tr>";
+	}		
+	tableBody.append(tableText);
+}
 
-	function deactivateEditingMode()
-	{
-		disconnectEvents();	
-		tableBody.children('tr').each(function() {
-			$(this).children('td').each(function() {
-				var currentText = $(this).find('input').val();
-				var cellDiv = $(this).find('.cell');
-				$(cellDiv).html(currentText);
-			});
-		});
-		tableBody.children('tr').last().remove();
-		deactivateResizeMode();
-	}
+function connectDeleteButtons() {
+	$('tbody').on('click', '.delete-btn', function() {
+		deleteRow($(this).closest('tr').index());
+	});
+}
 
-	function newItemChanged() {
-		var newItemDirty = false;
-		tableBody.find('.new-item').each(function(){
-			if ($(this).val != '') {
-				newItemDirty = true;
-				return false;				
-			}
-		});
+function deleteRow(row) {
+	tableBody.children('tr')[row].remove();
+	tableData.splice(row, 1);
+	updateLocalStorage();
+}	
 
-		if (newItemDirty) {
-			tableBody.find('.new-item').each(function() {
-				$(this).removeClass('new-item');
-				$(this).off('change', newItemChanged);			
-			});
-			tableBody.children('tr').last().children("td").last()
-			.html(deleteButton);				
-			
-			tableData.push({});
-			addEmptyRow();
-		}
-	}
+function getHeaderCell(resizer) {
+	var cell = $(resizer).closest('td');
+	var col = $(cell).index();
+	return table.find('th:nth-child(' + (col + 1)+ ')');
+}
 
-	function populateTable(data)
-	{
-		var tableText = "";
-		for(var i = 0; i < data.length; i++) {
-			tableText += "<tr>";
-			for (var j = 0; j < columnNames.length; j++) {
-				var cellValue = 
-					(data[i][columnNames[j]] !== undefined) ?
-					data[i][columnNames[j]] : "";
-				tableText += ("<td><div class=\"cell\">" + cellValue + "</div></td>");				
-			}
-			tableText += "<td><div class=\"cell\">" + deleteButton + "</div></td>";
-			tableText += "</tr>";
-		}		
-		tableBody.append(tableText);
-	}
+function columnCount() {
+	return tableBody.children("tr:first-child").children('td').length;
+}	
 
-	function connectDeleteButtons() {
-		$('tbody').on('click', '.delete-btn', function() {
-			deleteRow($(this).closest('tr').index());
-		});
-	}
+function resizeColumn(headerCell, cellWidth, nextCellWidth, tableWidth, difference) {
+	var col = $(headerCell).index();
+	$(headerCell).css('width', cellWidth + difference);
 
-	function deleteRow(row) {
-		tableBody.children('tr')[row].remove();
-		tableData.splice(row, 1);
-		updateLocalStorage();
+	if (col == columnCount() - 1) {			
+		table.css('width', tableWidth + difference);
 	}	
 
-	function getHeaderCell(resizer) {
-		var cell = $(resizer).closest('td');
-		var col = $(cell).index();
-		return table.find('th:nth-child(' + (col + 1)+ ')');
+	if (columnCount() > 1 && (col < columnCount() - 1)) {	
+		$(headerCell).next('th').css('width', nextCellWidth - difference);
 	}
+}
 
-	function columnCount() {
-		return tableBody.children("tr:first-child").children('td').length;
-	}	
+function getWidth(element) {
+	return parseInt(element.css('width'), 10);
+}
 
-	function resizeColumn(headerCell, cellWidth, nextCellWidth, tableWidth, difference) {
-		var col = $(headerCell).index();
-		$(headerCell).css('width', cellWidth + difference);
+function activateResizeMode() {
+	tableBody.children('tr').each(function() {
+		$(this).children('td').each(function() {
+			var cellDiv = $(this).find('.cell');
+			$(cellDiv).append(resizerLine);				
+		});
+	});
 
-		if (col == columnCount() - 1) {			
-			table.css('width', tableWidth + difference);
-		}	
+	$('.left-resizer').on('mouseover', function(){
+		$(this).css('cursor', 'ew-resize');
+	});
 
-		if (columnCount() > 1 && (col < columnCount() - 1)) {	
-			$(headerCell).next('th').css('width', nextCellWidth - difference);
+	var xBeforeMove;
+	var xAfterMove;
+	var borderCaptured = false;
+	var capturedHeaderCell;
+	var widthBeforeMove;
+	var nextWidthBeforeMove;
+	var tableWidthBeforeMove;
+	$('table')
+	.on('mousedown', '.left-resizer', function(e) {			
+		xBeforeMove = e.clientX;
+		borderCaptured = true;	
+		capturedHeaderCell = getHeaderCell(this);
+		widthBeforeMove = getWidth($(capturedHeaderCell));
+		nextWidthBeforeMove = getWidth($(capturedHeaderCell).next('th'));
+		tableWidthBeforeMove = getWidth(table);		
+		$(capturedHeaderCell).css('width', widthBeforeMove);		
+	})		
+
+	$(window).on('mousemove', function(e) {		
+		xAfterMove = e.clientX;
+		if (borderCaptured && (xAfterMove != xBeforeMove)) {				
+			var diff = xAfterMove - xBeforeMove;
+			resizeColumn(capturedHeaderCell, widthBeforeMove, nextWidthBeforeMove, tableWidthBeforeMove, diff);
 		}
-	}
+	})
+	.on('mouseup', function() {
+		borderCaptured = false;
+	});
+}
 
-	function activateResizeMode() {
-		tableBody.children('tr').each(function() {
-			$(this).children('td').each(function() {
-				var cellDiv = $(this).find('.cell');
-				$(cellDiv).append(resizerLine);				
-			});
+function deactivateResizeMode() {
+	tableBody.children('tr').each(function() {
+		$(this).children('td').each(function() {
+			$(this).find('.left-resizer').remove();							
 		});
+	});
+}
 
-		$('.left-resizer').on('mouseover', function(){
-			$(this).css('cursor', 'ew-resize');
-		});
-
-		var xBeforeMove;
-		var xAfterMove;
-		var borderCaptured = false;
-		var capturedHeaderCell;
-		var widthBeforeMove;
-		var nextWidthBeforeMove;
-		var tableWidthBeforeMove;
-		$('.left-resizer')
-		.on('mousedown', function(e) {			
-			xBeforeMove = e.clientX;
-			borderCaptured = true;	
-			capturedHeaderCell = getHeaderCell(this);
-			widthBeforeMove = parseInt($(capturedHeaderCell).css('width'), 10);
-			nextWidthBeforeMove = parseInt($(capturedHeaderCell).next('th').css('width'), 10);
-			tableWidthBeforeMove = parseInt(table.css('width'), 10);		
-			$(capturedHeaderCell).css('width', widthBeforeMove);		
-		})		
-
-		$(window).on('mousemove', function(e) {		
-			xAfterMove = e.clientX;
-			if (borderCaptured && (xAfterMove != xBeforeMove)) {				
-				var diff = xAfterMove - xBeforeMove;
-				resizeColumn(capturedHeaderCell, widthBeforeMove, nextWidthBeforeMove, tableWidthBeforeMove, diff);
-			}
-		})
-		.on('mouseup', function() {
-			borderCaptured = false;
-		});
-	}
-
-	function deactivateResizeMode() {
-		tableBody.children('tr').each(function() {
-			$(this).children('td').each(function() {
-				$(this).find('.left-resizer').remove();							
-			});
-		});
-	}
-
+$(document).ready(function() {
 	const table = $('table');
 	const tableBody = table.find('tbody');
 	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
