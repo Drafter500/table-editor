@@ -1,6 +1,6 @@
 describe("Table", function() {
   var tableEdit;
-  var tableBody; 
+  //var tableBody; 
   
   beforeEach(function() {
     tableEdit = new TableEdit();
@@ -10,7 +10,7 @@ describe("Table", function() {
     <tr><td>2.1</td><td>2.2</td><td>2.3</td></tr>\
     <tr><td>3.1</td><td>3.2</td><td>3.3</td></tr></tbody>\
     </table>");
-    tableBody = tableEdit.getBody();
+    //tableBody = tableEdit.getBody();
     //TODO: Get rid of global variables, this is ugly
   });
 
@@ -24,6 +24,7 @@ describe("Table", function() {
   });  
 
   it("should add empty row", function() {
+    var tableBody = tableEdit.table.find('tbody');
     expect(tableBody.children("tr").length).toEqual(3);
     tableEdit.addEmptyRow();    
     expect(tableBody.children("tr").length).toEqual(4);

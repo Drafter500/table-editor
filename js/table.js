@@ -1,4 +1,9 @@
 function TableEdit() {
+	this.cellIndexForElement = function(el) {
+		return { row : $(el).closest('tr').index(),
+				col : $(el).closest('td').index() }
+	};
+
 	function makeCellEditable(classSuffix, value, isNewItem = false) {
 		return '<input type="text" class="input-' + 
 		classSuffix + (isNewItem ? " new-item" : "") +
@@ -132,7 +137,7 @@ function TableEdit() {
 			self.table.css('width', tableWidth + difference);
 		}	
 
-		if (columnCount() > 1 && (col < columnCount() - 1)) {	
+		if ((columnCount() > 1) && (col < columnCount() - 1)) {	
 			$(headerCell).next('th').css('width', nextCellWidth - difference);
 		}
 	}
@@ -231,12 +236,7 @@ function TableEdit() {
 	this.getBody = function() { return tableBody; }
 }
 
-TableEdit.prototype.cellIndexForElement = function(el) {
-	return { row : $(el).closest('tr').index(),
-			col : $(el).closest('td').index() }
-};
-
 $(document).ready(function() {
-	//var tableEdit = new TableEdit();
-	//tableEdit.initialize();	
+	var tableEdit = new TableEdit();
+	tableEdit.initialize();
 });
