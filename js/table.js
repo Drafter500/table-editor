@@ -16,7 +16,7 @@ function TableEdit() {
 					columnNames[i], currentText));				
 			}
 		});
-		addEmptyRow();
+		self.addEmptyRow();
 		$('td input[type=text]').on('change', onInputChanged);
 		activateResizeMode();
 	}
@@ -35,18 +35,20 @@ function TableEdit() {
 		updateLocalStorage();
 	}
 
-	function addEmptyRow() {
-		var newRowText = '<tr>';
-		for (var i = 0; i < columnNames.length; i++) {
-			newRowText += "<td><div class=\"cell\">" + 
-			makeCellEditable(columnNames[i], '', true) +
-			"</div></td>";
-		}
-		newRowText += "<td></td>"
-		newRowText += '</tr>'
-		tableBody.append(newRowText);
-		$('.new-item').on('change', newItemChanged);
-		$('.new-item').on('change', onInputChanged);		
+	this.addEmptyRow = function() {
+		tableBody = this.table.find('tbody');
+		tableBody.append("<tr></tr>");
+		// var newRowText = '<tr>';
+		// for (var i = 0; i < columnNames.length; i++) {
+		// 	newRowText += "<td><div class=\"cell\">" + 
+		// 	makeCellEditable(columnNames[i], '', true) +
+		// 	"</div></td>";
+		// }
+		// newRowText += "<td></td>"
+		// newRowText += '</tr>'
+		// tableBody.append(newRowText);
+		// $('.new-item').on('change', newItemChanged);
+		// $('.new-item').on('change', onInputChanged);		
 	}
 
 	function deactivateEditingMode() {
@@ -80,7 +82,7 @@ function TableEdit() {
 			.html(deleteButton);				
 			
 			tableData.push({});
-			addEmptyRow();
+			self.addEmptyRow();
 		}
 	}
 
@@ -201,28 +203,32 @@ function TableEdit() {
 		}	
 	}
 
+	this.initialize = function() {
+		fetchTableData();
+		populateTable(tableData);
+		connectDeleteButtons();	
+
+		// Firefox remembers form state after page refresh
+		$('#edit-table-check').prop('checked', false);
+		$('#edit-table-check').on('change', function() {
+			if(this.checked) {
+				activateEditingMode();
+			}
+			else {
+				deactivateEditingMode();
+			}
+		});		
+	}
+
 	var self = this;
 	this.table = $('table');
-	const tableBody = this.table.find('tbody');
+	var tableBody = this.table.find('tbody');
 	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
-	const resizerLine = "<div class=\"left-resizer\"></div>";
-	var columnNames = ['name', 'age', 'country'];
+	const resizerLine = "<div class=\"left-resizer\"></div>";	
 	var tableData = [];
+	const columnNames = ['name', 'age', 'country'];
 
-	fetchTableData();
-	populateTable(tableData);
-	connectDeleteButtons();	
-
-	// Firefox remembers form state after page refresh
-	$('#edit-table-check').prop('checked', false);
-	$('#edit-table-check').on('change', function() {
-		if(this.checked) {
-			activateEditingMode();
-		}
-		else {
-			deactivateEditingMode();
-		}
-	});		
+	this.getBody = function() { return tableBody; }
 }
 
 TableEdit.prototype.cellIndexForElement = function(el) {
@@ -231,34 +237,6 @@ TableEdit.prototype.cellIndexForElement = function(el) {
 };
 
 $(document).ready(function() {
-	// const table = $('table');
-	// const tableBody = table.find('tbody');
-	// const deleteButton = "<button class=\"delete-btn\">Delete</button>";
-	// const resizerLine = "<div class=\"left-resizer\"></div>";
-	// var columnNames = ['name', 'age', 'country'];
-	// var tableData = [];
-	// if (localStorage["tableData"]) {
-	// 	tableData = JSON.parse(localStorage["tableData"]);
-	// } 
-	// else {
-	// 	tableData = 
-	// 	[{name : "John", age: 29, country : 'USA'},
-	//  	 {name : "Paul", age: 27, country : 'Germany'},
-	//  	 {name : "Vladimir", age: 26, country : 'Russia'}]
-	// }	
-
-	// populateTable(tableData);
-	// connectDeleteButtons();	
-
-	// // Firefox remembers form state after page refresh
-	// $('#edit-table-check').prop('checked', false);
-	// $('#edit-table-check').on('change', function() {
-	// 	if(this.checked) {
-	// 		activateEditingMode();
-	// 	}
-	// 	else {
-	// 		deactivateEditingMode();
-	// 	}
-	// });		
-	var tableEdit = new TableEdit();
+	//var tableEdit = new TableEdit();
+	//tableEdit.initialize();	
 });
