@@ -1,37 +1,33 @@
-$(document).ready(function() {
-	function cellIndex(cell) {
-		return {row : $(cell).closest('tr').index(),
-				col : $(cell).closest('td').index()}
+function TableEdit() {
+	this.cellIndexForElement = function(el) {
+		return { row : $(el).closest('tr').index(),
+				col : $(el).closest('td').index() }
 	};
 
-	function makeCellEditable(classSuffix, value, isNewItem = false){
+	function makeCellEditable(classSuffix, value, isNewItem = false) {
 		return '<input type="text" class="input-' + 
 		classSuffix + (isNewItem ? " new-item" : "") +
-		 '" value="' + value + '">';
+			'" value="' + value + '">';
 	}
 
-	function activateEditingMode()
-	{
-		table.children('tr').each(function() {
-			var i = 0;
+	function activateEditingMode() {
+		tableBody.children('tr').each(function() {
 			for(var i = 0; i < columnNames.length; i++) {
-				var td = $(this).children('td')[i];
-				var currentText = $(td).text();
-				$(td).html(makeCellEditable(
+				var td = $(this).children('td')[i],
+				  cellDiv = $(td).find('.cell'),
+				  currentText = $(cellDiv).text();
+				$(cellDiv).html(makeCellEditable(
 					columnNames[i], currentText));				
 			}
 		});
-		addEmptyRow();
-		$('td input[type=text]').on('change', connectInputEvent);
+		self.addEmptyRow();
+		$('td input[type=text]').on('change', onInputChanged);
+		activateResizeMode();
 	}
 
-	function connectInputEvent(event) {
-		var index = cellIndex(this);
+	function onInputChanged() {
+		var index = self.cellIndexForElement(this);
 		updateData(index.row, index.col, $(this).val());
-	}
-
-	function disconnectEvents() {
-		$('input[type=text]').off();
 	}
 
 	function updateLocalStorage() {
@@ -43,36 +39,36 @@ $(document).ready(function() {
 		updateLocalStorage();
 	}
 
-	function addEmptyRow()
-	{
-		var newRawText = '<tr>';
+	this.addEmptyRow = function() {
+		tableBody = this.table.find('tbody');
+		var newRowHtml = '<tr>';
 		for (var i = 0; i < columnNames.length; i++) {
-			newRawText += "<td>" + 
+			newRowHtml += "<td><div class=\"cell\">" + 
 			makeCellEditable(columnNames[i], '', true) +
-			"</td>";
+			"</div></td>";
 		}
-		newRawText += "<td></td>"
-		newRawText += '</tr>'
-		table.append(newRawText);
+		newRowHtml += "<td></td></tr>'";		
+		tableBody.append(newRowHtml);
 		$('.new-item').on('change', newItemChanged);
-		$('.new-item').on('change', connectInputEvent);		
+		$('.new-item').on('change', onInputChanged);		
 	}
 
-	function deactivateEditingMode()
-	{
-		disconnectEvents();	
-		table.children('tr').each(function() {
+	function deactivateEditingMode() {
+		$('input[type=text]').off();
+		tableBody.children('tr').each(function() {
 			$(this).children('td').each(function() {
 				var currentText = $(this).find('input').val();
-				$(this).html(currentText);				
+				var cellDiv = $(this).find('.cell');
+				$(cellDiv).html(currentText);
 			});
 		});
-		table.children('tr').last().remove();
+		tableBody.children('tr').last().remove();
+		deactivateResizeMode();
 	}
 
 	function newItemChanged() {
 		var newItemDirty = false;
-		table.find('.new-item').each(function(){
+		tableBody.find('.new-item').each(function(){
 			if ($(this).val != '') {
 				newItemDirty = true;
 				return false;				
@@ -80,33 +76,32 @@ $(document).ready(function() {
 		});
 
 		if (newItemDirty) {
-			table.find('.new-item').each(function() {
+			tableBody.find('.new-item').each(function() {
 				$(this).removeClass('new-item');
 				$(this).off('change', newItemChanged);			
 			});
-			table.children('tr').last().children("td").last()
-			.html(deleteButton);				
+			tableBody.children('tr').last().children("td").last()
+				.html(deleteButton);				
 			
 			tableData.push({});
-			addEmptyRow();
+			self.addEmptyRow();
 		}
 	}
 
-	function populateTable(data)
-	{
+	function populateTable() {
 		var tableText = "";
-		for(var i = 0; i < data.length; i++) {
+		for(var i = 0; i < tableData.length; i++) {
 			tableText += "<tr>";
 			for (var j = 0; j < columnNames.length; j++) {
 				var cellValue = 
-					(data[i][columnNames[j]] !== undefined) ?
-					data[i][columnNames[j]] : "";
-				tableText += ("<td>" + cellValue + '</td>');				
+					(tableData[i][columnNames[j]] !== undefined) ?
+					tableData[i][columnNames[j]] : "";
+				tableText += ("<td><div class=\"cell\">" + cellValue + "</div></td>");				
 			}
-			tableText += "<td>" + deleteButton + "</td>";
+			tableText += "<td><div class=\"cell\">" + deleteButton + "</div></td>";
 			tableText += "</tr>";
 		}		
-		table.append(tableText);
+		tableBody.append(tableText);
 	}
 
 	function connectDeleteButtons() {
@@ -116,58 +111,131 @@ $(document).ready(function() {
 	}
 
 	function deleteRow(row) {
-		table.children('tr')[row].remove();
+		tableBody.children('tr')[row].remove();
 		tableData.splice(row, 1);
 		updateLocalStorage();
+	}	
+
+	function getHeaderCell(resizer) {
+		var cell = $(resizer).closest('td');
+		var col = $(cell).index();
+		return self.table.find('th:nth-child(' + (col + 1)+ ')');
 	}
-
-	function retriveData() {
-		if (localStorage["tableData"]) {
-			tableData = JSON.parse(localStorage["tableData"]);
-		} 
-		else {
-			tableData = 
-			[{name : "John", age: 29, country : 'USA'},
-			{name : "Paul", age: 27, country : 'Germany'},
-			{name : "Vladimir", age: 26, country : 'Russia'}]
-		}	
-	}
-
-	const table = $('table tbody');
-	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
-	var columnNames = ['name', 'age', 'country'];
-	var tableData = [];
-
-	retrieveData();
-	populateTable(tableData);
-	connectDeleteButtons();
-
-	// Firefox remembers form state after page refresh
-	$('#edit-table-check').prop('checked', false);
-	$('#edit-table-check').on('change', function() {
-		if(this.checked) {
-			activateEditingMode();
-		}
-		else {
-			deactivateEditingMode();
-		}
-	});	
+  
+  function columnCount() {
+		return tableBody.children("tr:first-child").children('td').length;
+	}	
 	
+	function resizeColumn(headerCell, cellWidth, nextCellWidth, tableWidth, difference) {
+		var col = $(headerCell).index();
+		$(headerCell).css('width', cellWidth + difference);
 
 
-	// Test stuff, remove later
-	$("#loader").on('click', function(event) {
-		event.preventDefault();
-		$.ajax('/content.html', {
-			type: "GET", 
-			success: function(result) {				
-				$('#content').html(result);
+		if (col == columnCount() - 1) {			
+			self.table.css('width', tableWidth + difference);
+		}	
+
+		if ((columnCount() > 1) && (col < columnCount() - 1)) {	
+			$(headerCell).next('th').css('width', nextCellWidth - difference);
+		}
+	}
+
+	function getWidth(element) {
+		return parseInt(element.css('width'), 10);
+	}
+
+	function activateResizeMode() {
+		tableBody.children('tr').each(function() {
+			$(this).children('td').each(function() {
+				var cellDiv = $(this).find('.cell');
+				$(cellDiv).append(resizerLine);				
+			});
+		});
+
+		$('.left-resizer').on('mouseover', function(){
+			$(this).css('cursor', 'ew-resize');
+		});
+
+		var xBeforeMove,
+		    xAfterMove,
+		    borderCaptured = false,
+		    capturedHeaderCell,
+		    widthBeforeMove,
+		    nextWidthBeforeMove,
+		    tableWidthBeforeMove;
+
+		$('table').on('mousedown', '.left-resizer', function(e) {			
+			xBeforeMove = e.clientX;
+			borderCaptured = true;	
+			capturedHeaderCell = getHeaderCell(this);
+			widthBeforeMove = getWidth($(capturedHeaderCell));
+			nextWidthBeforeMove = getWidth($(capturedHeaderCell).next('th'));
+			tableWidthBeforeMove = getWidth(self.table);		
+			$(capturedHeaderCell).css('width', widthBeforeMove);		
+		})		
+
+		$(window).on('mousemove', function(e) {		
+			xAfterMove = e.clientX;
+			if (borderCaptured && (xAfterMove != xBeforeMove)) {				
+				var diff = xAfterMove - xBeforeMove;
+				resizeColumn(capturedHeaderCell, widthBeforeMove, nextWidthBeforeMove, tableWidthBeforeMove, diff);
 			}
 		})
-	});
+		.on('mouseup', function() {
+			borderCaptured = false;
+		});
+	}
 
-	$("#loader-in-dialog").on('click', function(event) {
-		event.preventDefault();
-		window.open('/content.html', "popup", 'height=300,width=300');
-	});
+	function deactivateResizeMode() {
+		tableBody.children('tr').each(function() {
+			$(this).children('td').each(function() {
+				$(this).find('.left-resizer').remove();							
+			});
+		});
+	}
+
+	function fetchTableData() {
+		if (localStorage["tableData"]) {
+			tableData = JSON.parse(localStorage["tableData"]);
+		}
+		else {
+			tableData =
+				[{ name: "John", age: 29, country: 'USA' },
+				{ name: "Paul", age: 27, country: 'Germany' },
+				{ name: "Vladimir", age: 26, country: 'Russia' }]
+		}	
+	}
+  
+	function initialize() {
+		fetchTableData();
+		populateTable(tableData);
+		connectDeleteButtons();	
+
+		// Firefox remembers form state after page refresh
+		$('#edit-table-check').prop('checked', false);
+		$('#edit-table-check').on('change', function() {
+			if(this.checked) {
+				activateEditingMode();
+			}
+			else {
+				deactivateEditingMode();
+			}
+		});		
+	}
+
+	this.getBody = function() { return tableBody; }
+
+	var self = this;
+	this.table = $('table');
+	var tableBody = this.table.find('tbody');
+	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
+	const resizerLine = "<div class=\"left-resizer\"></div>";	
+	var tableData = [];
+	const columnNames = ['name', 'age', 'country'];	
+
+	initialize();
+}
+
+$(document).ready(function() {
+	var tableEdit = new TableEdit();
 });
