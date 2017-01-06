@@ -121,14 +121,15 @@ function TableEdit() {
 		var col = $(cell).index();
 		return self.table.find('th:nth-child(' + (col + 1)+ ')');
 	}
-
-	function columnCount() {
+  
+  function columnCount() {
 		return tableBody.children("tr:first-child").children('td').length;
 	}	
-
+	
 	function resizeColumn(headerCell, cellWidth, nextCellWidth, tableWidth, difference) {
 		var col = $(headerCell).index();
 		$(headerCell).css('width', cellWidth + difference);
+
 
 		if (col == columnCount() - 1) {			
 			self.table.css('width', tableWidth + difference);
@@ -204,7 +205,7 @@ function TableEdit() {
 				{ name: "Vladimir", age: 26, country: 'Russia' }]
 		}	
 	}
-
+  
 	function initialize() {
 		fetchTableData();
 		populateTable(tableData);
@@ -236,5 +237,5 @@ function TableEdit() {
 }
 
 $(document).ready(function() {
-	var tableEdit = new TableEdit();	
+	var tableEdit = new TableEdit();
 });
