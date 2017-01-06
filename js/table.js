@@ -12,11 +12,10 @@ function TableEdit() {
 
 	function activateEditingMode() {
 		tableBody.children('tr').each(function() {
-			var i = 0;
 			for(var i = 0; i < columnNames.length; i++) {
-				var td = $(this).children('td')[i];
-				var cellDiv = $(td).find('.cell');
-				var currentText = $(cellDiv).text();
+				var td = $(this).children('td')[i],
+				  cellDiv = $(td).find('.cell'),
+				  currentText = $(cellDiv).text();
 				$(cellDiv).html(makeCellEditable(
 					columnNames[i], currentText));				
 			}
@@ -42,18 +41,16 @@ function TableEdit() {
 
 	this.addEmptyRow = function() {
 		tableBody = this.table.find('tbody');
-		tableBody.append("<tr></tr>");
-		// var newRowText = '<tr>';
-		// for (var i = 0; i < columnNames.length; i++) {
-		// 	newRowText += "<td><div class=\"cell\">" + 
-		// 	makeCellEditable(columnNames[i], '', true) +
-		// 	"</div></td>";
-		// }
-		// newRowText += "<td></td>"
-		// newRowText += '</tr>'
-		// tableBody.append(newRowText);
-		// $('.new-item').on('change', newItemChanged);
-		// $('.new-item').on('change', onInputChanged);		
+		var newRowHtml = '<tr>';
+		for (var i = 0; i < columnNames.length; i++) {
+			newRowHtml += "<td><div class=\"cell\">" + 
+			makeCellEditable(columnNames[i], '', true) +
+			"</div></td>";
+		}
+		newRowHtml += "<td></td></tr>'";		
+		tableBody.append(newRowHtml);
+		$('.new-item').on('change', newItemChanged);
+		$('.new-item').on('change', onInputChanged);		
 	}
 
 	function deactivateEditingMode() {
@@ -84,7 +81,7 @@ function TableEdit() {
 				$(this).off('change', newItemChanged);			
 			});
 			tableBody.children('tr').last().children("td").last()
-			.html(deleteButton);				
+				.html(deleteButton);				
 			
 			tableData.push({});
 			self.addEmptyRow();
@@ -158,15 +155,15 @@ function TableEdit() {
 			$(this).css('cursor', 'ew-resize');
 		});
 
-		var xBeforeMove;
-		var xAfterMove;
-		var borderCaptured = false;
-		var capturedHeaderCell;
-		var widthBeforeMove;
-		var nextWidthBeforeMove;
-		var tableWidthBeforeMove;
-		$('table')
-		.on('mousedown', '.left-resizer', function(e) {			
+		var xBeforeMove,
+		    xAfterMove,
+		    borderCaptured = false,
+		    capturedHeaderCell,
+		    widthBeforeMove,
+		    nextWidthBeforeMove,
+		    tableWidthBeforeMove;
+
+		$('table').on('mousedown', '.left-resizer', function(e) {			
 			xBeforeMove = e.clientX;
 			borderCaptured = true;	
 			capturedHeaderCell = getHeaderCell(this);
@@ -208,7 +205,7 @@ function TableEdit() {
 		}	
 	}
 
-	this.initialize = function() {
+	function initialize() {
 		fetchTableData();
 		populateTable(tableData);
 		connectDeleteButtons();	
@@ -225,18 +222,19 @@ function TableEdit() {
 		});		
 	}
 
+	this.getBody = function() { return tableBody; }
+
 	var self = this;
 	this.table = $('table');
 	var tableBody = this.table.find('tbody');
 	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
 	const resizerLine = "<div class=\"left-resizer\"></div>";	
 	var tableData = [];
-	const columnNames = ['name', 'age', 'country'];
+	const columnNames = ['name', 'age', 'country'];	
 
-	this.getBody = function() { return tableBody; }
+	initialize();
 }
 
 $(document).ready(function() {
-	var tableEdit = new TableEdit();
-	tableEdit.initialize();
+	var tableEdit = new TableEdit();	
 });
