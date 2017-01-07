@@ -89,19 +89,26 @@ function TableEdit() {
 	}
 
 	function populateTable() {
-		var tableText = "";
-		for(var i = 0; i < tableData.length; i++) {
-			tableText += "<tr>";
+		var tableHtml = "<thead><tr>";
+		for(var i = 0, x = columnNames.length; i < x; i++) {
+			tableHtml += ("<th><div class=\"cell\">" + columnNames[i] + "</div></th>");	
+		}
+
+		tableHtml += "</tr><thead><tbody>";
+		for(var i = 0, x = tableData.length; i < x; i++) {
+			tableHtml += "<tr>";
 			for (var j = 0; j < columnNames.length; j++) {
 				var cellValue = 
 					(tableData[i][columnNames[j]] !== undefined) ?
 					tableData[i][columnNames[j]] : "";
-				tableText += ("<td><div class=\"cell\">" + cellValue + "</div></td>");				
+				tableHtml += ("<td><div class=\"cell\">" + cellValue + "</div></td>");				
 			}
-			tableText += "<td><div class=\"cell\">" + deleteButton + "</div></td>";
-			tableText += "</tr>";
-		}		
-		tableBody.append(tableText);
+			tableHtml += "<td><div class=\"cell\">" + deleteButton + "</div></td>";
+			tableHtml += "</tr>";
+		}
+		tableHtml += "</tbody>";		
+		self.table.append(tableHtml);
+		tableBody = self.table.find('tbody');
 	}
 
 	function connectDeleteButtons() {
@@ -122,7 +129,7 @@ function TableEdit() {
 		return self.table.find('th:nth-child(' + (col + 1)+ ')');
 	}
   
-  function columnCount() {
+    function columnCount() {
 		return tableBody.children("tr:first-child").children('td').length;
 	}	
 	
@@ -145,16 +152,12 @@ function TableEdit() {
 	}
 
 	function activateResizeMode() {
-		tableBody.children('tr').each(function() {
-			$(this).children('td').each(function() {
+		self.table.find('tr').each(function() {
+			$(this).children('td, th').each(function() {
 				var cellDiv = $(this).find('.cell');
 				$(cellDiv).append(resizerLine);				
 			});
-		});
-
-		$('.left-resizer').on('mouseover', function(){
-			$(this).css('cursor', 'ew-resize');
-		});
+		});	
 
 		var xBeforeMove,
 		    xAfterMove,
@@ -226,8 +229,8 @@ function TableEdit() {
 	this.getBody = function() { return tableBody; }
 
 	var self = this;
-	this.table = $('table');
-	var tableBody = this.table.find('tbody');
+	this.table = $('table#table-edit');
+	var tableBody;
 	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
 	const resizerLine = "<div class=\"left-resizer\"></div>";	
 	var tableData = [];
