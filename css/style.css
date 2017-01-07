@@ -15,6 +15,10 @@ th {
 	background: linear-gradient(to top, #d5d5d5, #f0f0f0);
 } 
 
+th.actions-column {
+	width: 50px;
+}
+
 td, th {
 	border: 1px solid #aaa;
 	padding: 0px 5px;

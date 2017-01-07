@@ -19,10 +19,33 @@ function TableEdit() {
 				$(cellDiv).html(makeCellEditable(
 					columnNames[i], currentText));				
 			}
+			addActionsColumn($(this));
 		});
+		addActionsColumn(tableHeader.children('tr:first-child'), true);		
+		adjustTableWidthToActionsColumn(true);
+
 		self.addEmptyRow();
 		$('td input[type=text]').on('change', onInputChanged);
 		activateResizeMode();
+	}
+
+	function addActionsColumn(row, isHeader = false) {
+		var actionsCell = '';
+		if (isHeader) {
+			actionsCell = "<th class=\"actions-column\">Actions</th>";
+		}
+		else {
+			actionsCell = "<td>" + deleteButton + "</td>";
+		}
+		row.append(actionsCell);
+	}
+
+	function adjustTableWidthToActionsColumn(toAdd) {
+		 var tableWidth = getWidth(self.table),
+			 actionColumnWidth =$('.actions-column').last().outerWidth();
+		 if (tableWidth && actionColumnWidth) {
+		 	self.table.css('width', tableWidth + actionColumnWidth * (toAdd ? 1 : -1));
+		 }
 	}
 
 	function onInputChanged() {
@@ -47,7 +70,7 @@ function TableEdit() {
 			makeCellEditable(columnNames[i], '', true) +
 			"</div></td>";
 		}
-		newRowHtml += "<td><div class=\"cell\">&nbsp;</div></td></tr>'";		
+		newRowHtml += "<td></td></tr>'";		
 		tableBody.append(newRowHtml);
 		$('.new-item').on('change', newItemChanged);
 		$('.new-item').on('change', onInputChanged);		
@@ -61,9 +84,12 @@ function TableEdit() {
 				var cellDiv = $(this).find('.cell');
 				$(cellDiv).html(currentText);
 			});
+			$(this).children('td:last-child').remove();
 		});
-		tableBody.children('tr').last().remove();
+		tableBody.children('tr:last-child').remove();
 		deactivateResizeMode();
+		adjustTableWidthToActionsColumn(false);
+		tableHeader.children('tr:first-child').children('th:last-child').remove();		
 	}
 
 	function newItemChanged() {
@@ -103,12 +129,12 @@ function TableEdit() {
 					tableData[i][columnNames[j]] : "";
 				tableHtml += ("<td><div class=\"cell\">" + cellValue + "</div></td>");				
 			}
-			tableHtml += "<td><div class=\"cell\">" + deleteButton + "</div></td>";
 			tableHtml += "</tr>";
 		}
 		tableHtml += "</tbody>";		
 		self.table.append(tableHtml);
 		tableBody = self.table.find('tbody');
+		tableHeader = self.table.find('thead');
 	}
 
 	function connectDeleteButtons() {
@@ -137,12 +163,11 @@ function TableEdit() {
 		var col = $(headerCell).index();
 		$(headerCell).css('width', cellWidth + difference);
 
-
-		if (col == columnCount() - 1) {			
+		if (col == columnCount() - 2) {	// 2 because last column is not resizable
 			self.table.css('width', tableWidth + difference);
 		}	
 
-		if ((columnCount() > 1) && (col < columnCount() - 1)) {	
+		if ((columnCount() > 1) && (col < columnCount() - 2)) {	
 			$(headerCell).next('th').css('width', nextCellWidth - difference);
 		}
 	}
@@ -230,8 +255,9 @@ function TableEdit() {
 
 	var self = this;
 	this.table = $('table#table-edit');
-	var tableBody;
-	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
+	var tableBody,
+		tableHeader;
+	const deleteButton = "<button class=\"delete-btn\"><i class=\"fa fa-trash-o\" aria-hidden=\"true\"></i></button>";
 	const resizerLine = "<div class=\"left-resizer\" title=\"Drag to resize\"></div>";	
 	var tableData = [];
 	const columnNames = ['name', 'age', 'country'];	
