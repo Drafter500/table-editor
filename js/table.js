@@ -7,7 +7,7 @@ function TableEdit() {
 	function makeCellEditable(classSuffix, value, isNewItem = false) {
 		return '<input type="text" class="input-' + 
 		classSuffix + (isNewItem ? " new-item" : "") +
-			'" value="' + value + '">';
+			'" value="' + value + '">' + resizerLine;
 	}
 
 	function activateEditingMode() {
@@ -67,7 +67,7 @@ function TableEdit() {
 		var newRowHtml = '<tr>';
 		for (var i = 0; i < columnNames.length; i++) {
 			newRowHtml += "<td><div class=\"cell\">" + 
-			makeCellEditable(columnNames[i], '', true) +
+			makeCellEditable(columnNames[i], '', true) +			
 			"</div></td>";
 		}
 		newRowHtml += "<td></td></tr>'";		
@@ -177,11 +177,9 @@ function TableEdit() {
 	}
 
 	function activateResizeMode() {
-		self.table.find('tr').each(function() {
-			$(this).children('td, th').each(function() {
-				var cellDiv = $(this).find('.cell');
-				$(cellDiv).append(resizerLine);				
-			});
+		tableHeader.find('tr:first-child').children('th').each(function() {
+			var cellDiv = $(this).find('.cell');
+			$(cellDiv).append(resizerLine);			
 		});	
 
 		var xBeforeMove,
