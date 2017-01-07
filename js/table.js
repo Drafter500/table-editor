@@ -47,7 +47,7 @@ function TableEdit() {
 			makeCellEditable(columnNames[i], '', true) +
 			"</div></td>";
 		}
-		newRowHtml += "<td></td></tr>'";		
+		newRowHtml += "<td><div class=\"cell\">&nbsp;</div></td></tr>'";		
 		tableBody.append(newRowHtml);
 		$('.new-item').on('change', newItemChanged);
 		$('.new-item').on('change', onInputChanged);		
@@ -124,7 +124,7 @@ function TableEdit() {
 	}	
 
 	function getHeaderCell(resizer) {
-		var cell = $(resizer).closest('td');
+		var cell = $(resizer).closest('td, th');
 		var col = $(cell).index();
 		return self.table.find('th:nth-child(' + (col + 1)+ ')');
 	}
@@ -167,7 +167,7 @@ function TableEdit() {
 		    nextWidthBeforeMove,
 		    tableWidthBeforeMove;
 
-		$('table').on('mousedown', '.left-resizer', function(e) {			
+		self.table.on('mousedown', '.left-resizer', function(e) {			
 			xBeforeMove = e.clientX;
 			borderCaptured = true;	
 			capturedHeaderCell = getHeaderCell(this);
@@ -190,8 +190,8 @@ function TableEdit() {
 	}
 
 	function deactivateResizeMode() {
-		tableBody.children('tr').each(function() {
-			$(this).children('td').each(function() {
+		self.table.find('tr').each(function() {
+			$(this).children('td, th').each(function() {
 				$(this).find('.left-resizer').remove();							
 			});
 		});
@@ -232,7 +232,7 @@ function TableEdit() {
 	this.table = $('table#table-edit');
 	var tableBody;
 	const deleteButton = "<button class=\"delete-btn\">Delete</button>";
-	const resizerLine = "<div class=\"left-resizer\"></div>";	
+	const resizerLine = "<div class=\"left-resizer\" title=\"Drag to resize\"></div>";	
 	var tableData = [];
 	const columnNames = ['name', 'age', 'country'];	
 

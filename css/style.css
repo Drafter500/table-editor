@@ -87,6 +87,6 @@ td input {
 	height: 100%;
 	position: absolute;
 	right: -7px;
-	top: 0px;
+	top: -2px;
 	cursor: ew-resize;
 }
